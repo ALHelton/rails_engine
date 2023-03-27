@@ -1,7 +1,7 @@
 module Api
   module V1
     module Merchants
-      class SearchController
+      class SearchController < ApplicationController
         
       end
     end
