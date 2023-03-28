@@ -61,25 +61,53 @@ describe "Items API", type: :request do
   end
 
   describe "#create" do
-    it "creates a new item" do
-      @merchant = Merchant.first
-      item_params = ({
-                    name: "Shiny Itemy Item",
-                    description: "It does a lot of things real good",
-                    unit_price: 40.00,
-                    merchant_id: @merchant.id
-                    })
-      headers = {"CONTENT_TYPE" => "application/json"}
+    context "when successful" do
+      before do
+        merchant = Merchant.first
+        item_params = ({
+                      name: "Shiny Itemy Item",
+                      description: "It does a lot of things real good",
+                      unit_price: 40.00,
+                      merchant_id: merchant.id
+                      })
+        headers = {"CONTENT_TYPE" => "application/json"}
+        post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+        @created_item = Item.last
+        @parsed = JSON.parse(response.body, symbolize_names: true)
+      end
 
-      post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
-
-      created_item = Item.last
-
-      expect(response).to be_successful
-      expect(created_item.name).to eq(item_params[:name])
-      expect(created_item.description).to eq(item_params[:description])
-      expect(created_item.unit_price).to eq(item_params[:unit_price])
-      expect(created_item.merchant_id).to eq(merchant_id[:name])
+      it "creates a new item" do
+        expect(response).to be_successful
+        expect(@parsed[:data][:type]).to eq('item')
+        expect(@parsed[:data][:attributes][:name]).to eq(@created_item.name)
+        expect(@parsed[:data][:attributes][:description]).to eq(@created_item.description)
+        expect(@parsed[:data][:attributes][:unit_price]).to eq(@created_item.unit_price)
+        expect(@parsed[:data][:attributes][:merchant_id]).to eq(@created_item.merchant_id)
+        expect(@parsed[:data][:attributes][:unit_price]).to be_a(Float)
+        expect(@parsed[:data][:attributes].size).to eq(4)
+      end
     end
+
+    # context "when unsuccessful" do
+    #   it "returns error if any attribute is missing" do
+    #     merchant = Merchant.first
+        
+    #     item_params_1 = ({
+    #       name: "Shiny Itemy Item",
+    #       description: "It does a lot of things real good",
+    #       unit_price: 40.00,
+    #       merchant_id: merchant.id
+    #       })
+    #     item_params_2 = ({
+    #       name: "Shiny Itemy Item",
+    #       description: "It does a lot of things real good",
+    #       unit_price: 40.00,
+    #       merchant_id: merchant.id
+    #       })
+    #     headers = {"CONTENT_TYPE" => "application/json"}
+    #     post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+    #     parsed = JSON.parse(response.body, symbolize_names: true)
+    #   end
+    # end
   end
 end
