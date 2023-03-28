@@ -44,7 +44,7 @@ describe "Items API", type: :request do
         expect(@parsed[:data][:attributes][:description]).to eq(@item.description)
         expect(@parsed[:data][:attributes][:unit_price]).to eq(@item.unit_price)
         expect(@parsed[:data][:attributes][:merchant_id]).to eq(@item.merchant_id)
-
+        expect(@parsed[:data][:attributes][:unit_price]).to be_a(Float)
         expect(@parsed[:data][:attributes].size).to eq(4)
       end
     end
