@@ -77,7 +77,7 @@ describe "Items API", type: :request do
       end
 
       it "creates a new item" do
-        expect(response).to be_successful
+        expect(response).to have_http_status(201)
         expect(@parsed[:data][:type]).to eq('item')
         expect(@parsed[:data][:attributes][:name]).to eq(@created_item.name)
         expect(@parsed[:data][:attributes][:description]).to eq(@created_item.description)
@@ -134,5 +134,21 @@ describe "Items API", type: :request do
     #     it "merchant_id missing"
     #   end
     # end
+  end
+
+  describe "#destroy" do
+    context "when successful" do
+      before do
+        @item = Item.first
+      end
+      
+      it "deletes an item" do
+        expect(Item.count).to eq(5)
+        delete "/api/v1/items/#{@item.id}"
+        expect(response).to be_successful
+        expect(Item.count).to eq(4)
+        expect{Item.find(@item.id)}.to raise_error(ActiveRecord::RecordNotFound)
+      end
+    end
   end
 end
