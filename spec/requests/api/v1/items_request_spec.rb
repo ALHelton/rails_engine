@@ -25,4 +25,38 @@ describe "Items API", type: :request do
       end
     end
   end
+
+  describe "#show" do
+    before do
+      @item = Item.first
+      get "/api/v1/items/#{@item.id}"
+      @parsed = JSON.parse(response.body, symbolize_names: true)
+    end
+
+    context "when successful" do
+      it "GET one item" do
+        expect(response).to be_successful
+
+        expect(@parsed[:data].keys).to eq([:id, :type, :attributes])
+        expect(@parsed[:data][:id]).to eq(@item.id.to_s)
+        expect(@parsed[:data][:type]).to eq('item')
+        expect(@parsed[:data][:attributes][:name]).to eq(@item.name)
+        expect(@parsed[:data][:attributes][:description]).to eq(@item.description)
+        expect(@parsed[:data][:attributes][:unit_price]).to eq(@item.unit_price)
+        expect(@parsed[:data][:attributes][:merchant_id]).to eq(@item.merchant_id)
+        expect(@parsed[:data][:attributes][:unit_price]).to be_a(Float)
+        expect(@parsed[:data][:attributes].size).to eq(4)
+      end
+    end
+
+    context "when unsuccessful" do
+      it "returns error message" do
+        get "/api/v1/items/8923987297"
+        parsed = JSON.parse(response.body, symbolize_names: true)
+
+        expect(response).to have_http_status(404)
+        expect(parsed[:error]).to eq("Couldn't find Item with 'id'=8923987297")
+      end
+    end
+  end
 end
