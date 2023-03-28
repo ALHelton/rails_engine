@@ -120,20 +120,20 @@ describe "Items API", type: :request do
     #     @headers = {"CONTENT_TYPE" => "application/json"}
     #   end
       
-    #   describe "returns error if any attribute is missing" do
-    #     it "name missing" do
-    #       post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params_1)
-    #       parsed = JSON.parse(response.body, symbolize_names: true)
+  #     describe "returns error if any attribute is missing" do
+  #       it "name missing" do
+  #         post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params_1)
+  #         parsed = JSON.parse(response.body, symbolize_names: true)
 
-    #       expect(response).to have_http_status(404)
-    #       # expect(parsed[:error]).to eq("")
-    #     end
+  #         expect(response).to have_http_status(404)
+  #         # expect(parsed[:error]).to eq("")
+  #       end
 
-    #     it "description missing"
-    #     it "unit_price missing"
-    #     it "merchant_id missing"
-    #   end
-    # end
+  #       it "description missing"
+  #       it "unit_price missing"
+  #       it "merchant_id missing"
+  #     end
+  #   end
   end
 
   describe "#destroy" do
