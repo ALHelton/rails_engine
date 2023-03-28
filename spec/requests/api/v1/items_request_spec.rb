@@ -48,5 +48,15 @@ describe "Items API", type: :request do
         expect(@parsed[:data][:attributes].size).to eq(4)
       end
     end
+
+    context "when unsuccessful" do
+      it "returns error message" do
+        get "/api/v1/items/8923987297"
+        parsed = JSON.parse(response.body, symbolize_names: true)
+
+        expect(response).to have_http_status(404)
+        expect(parsed[:error]).to eq("Couldn't find Item with 'id'=8923987297")
+      end
+    end
   end
 end
