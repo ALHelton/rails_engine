@@ -89,24 +89,49 @@ describe "Items API", type: :request do
     end
 
     # context "when unsuccessful" do
-    #   it "returns error if any attribute is missing" do
-    #     merchant = Merchant.first
+    #   before do
+    #     @merchant = Merchant.first
         
-    #     item_params_1 = ({
+    #     @item_params_1 = ({
+    #       name: nil,
+    #       description: "It does a lot of things real good",
+    #       unit_price: 40.00,
+    #       merchant_id: @merchant.id
+    #       })
+    #     @item_params_2 = ({
+    #       name: "Shiny Itemy Item",
+    #       description: nil,
+    #       unit_price: 40.00,
+    #       merchant_id: @merchant.id
+    #       })
+    #     @item_params_3 = ({
+    #       name: "Shiny Itemy Item",
+    #       description: "It does a lot of things real good",
+    #       unit_price: nil,
+    #       merchant_id: @merchant.id
+    #       })
+    #     @item_params_4 = ({
     #       name: "Shiny Itemy Item",
     #       description: "It does a lot of things real good",
     #       unit_price: 40.00,
-    #       merchant_id: merchant.id
+    #       merchant_id: nil
     #       })
-    #     item_params_2 = ({
-    #       name: "Shiny Itemy Item",
-    #       description: "It does a lot of things real good",
-    #       unit_price: 40.00,
-    #       merchant_id: merchant.id
-    #       })
-    #     headers = {"CONTENT_TYPE" => "application/json"}
-    #     post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
-    #     parsed = JSON.parse(response.body, symbolize_names: true)
+        
+    #     @headers = {"CONTENT_TYPE" => "application/json"}
+    #   end
+      
+    #   describe "returns error if any attribute is missing" do
+    #     it "name missing" do
+    #       post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params_1)
+    #       parsed = JSON.parse(response.body, symbolize_names: true)
+
+    #       expect(response).to have_http_status(404)
+    #       # expect(parsed[:error]).to eq("")
+    #     end
+
+    #     it "description missing"
+    #     it "unit_price missing"
+    #     it "merchant_id missing"
     #   end
     # end
   end
