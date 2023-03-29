@@ -52,4 +52,24 @@ describe "Merchants API", type: :request do
       end
     end
   end
+
+  describe "Merchant Items" do
+    context "when successful" do
+      before do
+        @merchant = create(:merchant)
+        create_list(:item, 5, merchant_id: @merchant.id)
+        get "/api/v1/merchants/#{@merchant.id}/items"
+        @parsed = JSON.parse(response.body, symbolize_names: true)
+      end
+
+      it "GET all items for a given merchant ID" do
+        expect(response).to be_successful
+        expect(@parsed[:data][0].keys).to eq([:id, :type, :attributes])
+        expect(@parsed[:data][0][:attributes][:name]).to eq(@merchant.items.first.name)
+        expect(@parsed[:data][0][:attributes][:description]).to eq(@merchant.items.first.description)
+        expect(@parsed[:data][0][:attributes][:unit_price]).to eq(@merchant.items.first.unit_price)
+        expect(@parsed[:data][0][:attributes][:merchant_id]).to eq(@merchant.id)
+      end
+    end
+  end
 end
