@@ -112,27 +112,59 @@ describe "Items API", type: :request do
   end
 
   describe "#update" do
-    context "when successful" do
-      before do
-        id = create(:item).id
-        previous_name = Item.last.name
-        item_params = { name: "Some Thing" }
-        headers = {"CONTENT_TYPE" => "application/json"}
-        patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
-        @updated_item = Item.find_by(id: id)
-        @parsed = JSON.parse(response.body, symbolize_names: true)
-      end
+    before do
+      @id = create(:item).id
+      @previous_name = Item.find_by(id: @id).name
+      @item_params = { name: "Some Thing" }
+      @headers = {"CONTENT_TYPE" => "application/json"}
+    end
 
+    context "when successful" do
       it "updates an existing item" do
+        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @item_params})
+        parsed = JSON.parse(response.body, symbolize_names: true)
+        updated_item = Item.find_by(id: @id)
+        
         expect(response).to be_successful
-        expect(@parsed[:data].keys).to eq([:id, :type, :attributes])
-        expect(@parsed[:data][:type]).to eq('item')
-        expect(@parsed[:data][:attributes][:name]).to eq(@updated_item.name)
-        expect(@parsed[:data][:attributes][:description]).to eq(@updated_item.description)
-        expect(@parsed[:data][:attributes][:unit_price]).to eq(@updated_item.unit_price)
-        expect(@parsed[:data][:attributes][:unit_price]).to be_a(Float)
-        expect(@parsed[:data][:attributes][:merchant_id]).to eq(@updated_item.merchant_id)
-        expect(@parsed[:data][:attributes].size).to eq(4)
+        expect(parsed[:data].keys).to eq([:id, :type, :attributes])
+        expect(parsed[:data][:type]).to eq('item')
+        expect(parsed[:data][:attributes][:name]).to eq(updated_item.name)
+        expect(parsed[:data][:attributes][:name]).to_not eq(@previous_name)
+        expect(parsed[:data][:attributes][:description]).to eq(updated_item.description)
+        expect(parsed[:data][:attributes][:unit_price]).to eq(updated_item.unit_price)
+        expect(parsed[:data][:attributes][:unit_price]).to be_a(Float)
+        expect(parsed[:data][:attributes][:merchant_id]).to eq(updated_item.merchant_id)
+        expect(parsed[:data][:attributes].size).to eq(4)
+      end
+    end
+
+    context "when unsuccessful" do      
+      it "returns a 404 error" do
+        nil_item_params = { name: nil }
+        nil_description_params = { description: nil }
+        nil_unit_price_params = { unit_price: nil }
+        abc_unit_price_params = { unit_price: "not the correct datatype" }
+        nil_merchant_id_params = { merchant_id: nil }
+        
+        #nil name
+        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_item_params})
+        expect(response).to have_http_status(404)
+
+        #nil description
+        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_description_params})
+        expect(response).to have_http_status(404)
+
+        #nil unit_price
+        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_unit_price_params})
+        expect(response).to have_http_status(404)
+
+        #incorrect unit_price datatype
+        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: abc_unit_price_params})
+        expect(response).to have_http_status(404)
+
+        #nil merchant_id params
+        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_merchant_id_params})
+        expect(response).to have_http_status(404)
       end
     end
   end
