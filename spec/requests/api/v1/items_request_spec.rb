@@ -61,30 +61,67 @@ describe "Items API", type: :request do
   end
 
   describe "#create" do
-    context "when successful" do
-      before do
-        merchant = Merchant.first
-        item_params = ({
-                      name: "Shiny Itemy Item",
-                      description: "It does a lot of things real good",
-                      unit_price: 40.00,
-                      merchant_id: merchant.id
-                      })
-        headers = {"CONTENT_TYPE" => "application/json"}
-        post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
-        @created_item = Item.last
-        @parsed = JSON.parse(response.body, symbolize_names: true)
-      end
+    before do
+      @id = create(:merchant).id
+      @item_params = ({
+                    name: "Shiny Itemy Item",
+                    description: "It does a lot of things real good",
+                    unit_price: 40.00,
+                    merchant_id: @id
+                    })
+      @headers = {"CONTENT_TYPE" => "application/json"}
+    end
 
+    context "when successful" do
       it "creates a new item" do
+        post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
+        created_item = Item.last
+        parsed = JSON.parse(response.body, symbolize_names: true)
+
         expect(response).to have_http_status(201)
-        expect(@parsed[:data][:type]).to eq('item')
-        expect(@parsed[:data][:attributes][:name]).to eq(@created_item.name)
-        expect(@parsed[:data][:attributes][:description]).to eq(@created_item.description)
-        expect(@parsed[:data][:attributes][:unit_price]).to eq(@created_item.unit_price)
-        expect(@parsed[:data][:attributes][:merchant_id]).to eq(@created_item.merchant_id)
-        expect(@parsed[:data][:attributes][:unit_price]).to be_a(Float)
-        expect(@parsed[:data][:attributes].size).to eq(4)
+        expect(parsed[:data][:type]).to eq('item')
+        expect(parsed[:data][:attributes][:name]).to eq(created_item.name)
+        expect(parsed[:data][:attributes][:description]).to eq(created_item.description)
+        expect(parsed[:data][:attributes][:unit_price]).to eq(created_item.unit_price)
+        expect(parsed[:data][:attributes][:merchant_id]).to eq(created_item.merchant_id)
+        expect(parsed[:data][:attributes][:unit_price]).to be_a(Float)
+        expect(parsed[:data][:attributes].size).to eq(4)
+      end
+    end
+
+    context "when unsuccessful" do
+      describe "returns a 422 status" do
+        it "nil name" do
+          @item_params[:name] = nil
+          post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
+          expect(response).to have_http_status(422)
+        end
+
+        it "nil description" do
+          @item_params[:description] = nil
+          post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
+          expect(response).to have_http_status(422)
+        end
+
+        it "nil / invalid unit_price" do
+          @item_params[:unit_price] = nil
+          post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
+          expect(response).to have_http_status(422)
+
+          @item_params[:unit_price] = "abc"
+          post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
+          expect(response).to have_http_status(422)
+        end
+
+        it "nil / invalid merchant_id" do
+          @item_params[:merchant_id] = nil
+          post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
+          expect(response).to have_http_status(422)
+
+          @item_params[:merchant_id] = "abc"
+          post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
+          expect(response).to have_http_status(422)
+        end
       end
     end
   end
@@ -139,32 +176,37 @@ describe "Items API", type: :request do
     end
 
     context "when unsuccessful" do      
-      it "returns a 404 error" do
-        nil_item_params = { name: nil }
-        nil_description_params = { description: nil }
-        nil_unit_price_params = { unit_price: nil }
-        abc_unit_price_params = { unit_price: "not the correct datatype" }
-        nil_merchant_id_params = { merchant_id: nil }
+      describe "returns a 404 error" do
+        before do
+          @nil_item_params = { name: nil }
+          @nil_description_params = { description: nil }
+          @nil_unit_price_params = { unit_price: nil }
+          @abc_unit_price_params = { unit_price: "not the correct datatype" }
+          @nil_merchant_id_params = { merchant_id: nil }
+        end
         
-        #nil name
-        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_item_params})
-        expect(response).to have_http_status(404)
+        it "nil name" do
+          patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_item_params})
+          expect(response).to have_http_status(404)
+        end
 
-        #nil description
-        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_description_params})
-        expect(response).to have_http_status(404)
+        it "nil description" do
+          patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_description_params})
+          expect(response).to have_http_status(404)
+        end
 
-        #nil unit_price
-        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_unit_price_params})
-        expect(response).to have_http_status(404)
+        it "nil / invalid unit_price" do
+          patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_unit_price_params})
+          expect(response).to have_http_status(404)
 
-        #incorrect unit_price datatype
-        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: abc_unit_price_params})
-        expect(response).to have_http_status(404)
+          patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @abc_unit_price_params})
+          expect(response).to have_http_status(404)
+        end
 
-        #nil merchant_id params
-        patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: nil_merchant_id_params})
-        expect(response).to have_http_status(404)
+        it "nil / invalid merchant_id" do
+          patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_merchant_id_params})
+          expect(response).to have_http_status(404)
+        end
       end
     end
   end
