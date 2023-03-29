@@ -26,7 +26,7 @@ describe "Merchants API", type: :request do
   describe "#show" do
     context "when successful" do
       before do
-        @merchant = Merchant.first
+        @merchant = create(:merchant)
         get "/api/v1/merchants/#{@merchant.id}"
         @parsed = JSON.parse(response.body, symbolize_names: true)
       end
