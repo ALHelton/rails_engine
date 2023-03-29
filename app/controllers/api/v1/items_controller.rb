@@ -12,7 +12,13 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def destroy
-    render json: Item.destroy(params[:id])
+    render json: Item.destroy(params[:id]), status: 204
+  end
+
+  def update
+    item = Item.find(params[:id])
+    item.update(item_params)
+    render json: ItemSerializer.new(item)
   end
 
   private
