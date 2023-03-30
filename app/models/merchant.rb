@@ -4,4 +4,9 @@ class Merchant < ApplicationRecord
 
   validates :name, presence: true
 
+  def self.find_by_name(name)
+    where("name ILIKE ?", "%#{name}%")
+      .order(:name)
+      .first
+  end
 end
