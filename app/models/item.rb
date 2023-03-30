@@ -13,4 +13,9 @@ class Item < ApplicationRecord
       .group(:id)
       .having("count(items.id) =1")
   end
+
+  def self.find_by_name(name)
+    where("name ILIKE ?", "%#{name}%")
+    .order(name: :asc)
+  end
 end
