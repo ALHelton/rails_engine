@@ -90,37 +90,51 @@ describe "Items API", type: :request do
     end
 
     context "when unsuccessful" do
-      describe "returns a 422 status" do
+      describe "returns a 400 status" do
         it "nil name" do
           @item_params[:name] = nil
           post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
-          expect(response).to have_http_status(422)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Name can't be blank")
         end
 
         it "nil description" do
           @item_params[:description] = nil
           post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
-          expect(response).to have_http_status(422)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Description can't be blank")
         end
 
         it "nil / invalid unit_price" do
           @item_params[:unit_price] = nil
           post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
-          expect(response).to have_http_status(422)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Unit price can't be blank, Unit price is not a number")
+
 
           @item_params[:unit_price] = "abc"
           post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
-          expect(response).to have_http_status(422)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Unit price is not a number")
+
         end
 
         it "nil / invalid merchant_id" do
           @item_params[:merchant_id] = nil
           post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
-          expect(response).to have_http_status(422)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Merchant must exist, Merchant can't be blank")
 
           @item_params[:merchant_id] = "abc"
           post "/api/v1/items", headers: @headers, params: JSON.generate(item: @item_params)
-          expect(response).to have_http_status(422)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Merchant must exist")
         end
       end
     end
@@ -171,6 +185,8 @@ describe "Items API", type: :request do
         delete "/api/v1/items/abc"
         expect(response).to have_http_status(404)
         expect(Item.count).to eq(8)
+        parsed = JSON.parse(response.body, symbolize_names: true)
+        expect(parsed[:error]).to eq("Couldn't find Item with 'id'=abc")
       end
     end
   end
@@ -210,29 +226,48 @@ describe "Items API", type: :request do
           @nil_unit_price_params = { unit_price: nil }
           @abc_unit_price_params = { unit_price: "not the correct datatype" }
           @nil_merchant_id_params = { merchant_id: nil }
+          @abc_merchant_id_params = { merchant_id: "abc" }
         end
         
         it "nil name" do
           patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_item_params})
-          expect(response).to have_http_status(404)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Name can't be blank")
         end
 
         it "nil description" do
           patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_description_params})
-          expect(response).to have_http_status(404)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Description can't be blank")
         end
 
         it "nil / invalid unit_price" do
           patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_unit_price_params})
-          expect(response).to have_http_status(404)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Unit price can't be blank, Unit price is not a number")
 
           patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @abc_unit_price_params})
-          expect(response).to have_http_status(404)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Unit price is not a number")
+
         end
 
         it "nil / invalid merchant_id" do
           patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @nil_merchant_id_params})
-          expect(response).to have_http_status(404)
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Merchant must exist, Merchant can't be blank")
+
+          patch "/api/v1/items/#{@id}", headers: @headers, params: JSON.generate({item: @abc_merchant_id_params})
+          parsed = JSON.parse(response.body, symbolize_names: true)
+          expect(response).to have_http_status(400)
+          expect(parsed[:error]).to eq("Validation failed: Merchant must exist")
         end
       end
     end
