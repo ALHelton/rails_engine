@@ -127,24 +127,51 @@ describe "Items API", type: :request do
   end
 
   describe "#destroy" do
-    context "when successful" do
-      before do
-        @item = Item.first
-      end
+    before do
+      merchant = create(:merchant)
+      customer = create(:customer)
+      @item1 = create(:item, merchant_id: merchant.id)
+      item2 = create(:item, merchant_id: merchant.id)
+      item3 = create(:item, merchant_id: merchant.id)
+      @invoice = create(:invoice, merchant_id: merchant.id, customer_id: customer.id)
+      @invoice2 = create(:invoice, merchant_id: merchant.id, customer_id: customer.id)
       
+      ii1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item1.id)
+      ii2 = create(:invoice_item, invoice_id: @invoice2.id, item_id: item2.id)
+      ii3 = create(:invoice_item, invoice_id: @invoice2.id, item_id: item3.id)
+      
+      t1 = create(:transaction, invoice_id: @invoice.id)
+      t2 = create(:transaction, invoice_id: @invoice.id)
+      t3 = create(:transaction, invoice_id: @invoice2.id)
+      
+    end
+    
+    context "when successful" do
       it "deletes an item" do
-        expect(Item.count).to eq(5)
-        delete "/api/v1/items/#{@item.id}"
+        expect(Item.count).to eq(8)
+        delete "/api/v1/items/#{@item1.id}"
         expect(response).to have_http_status(204)
-        expect(Item.count).to eq(4)
-        expect{ Item.find(@item.id) }.to raise_error(ActiveRecord::RecordNotFound)
+        expect(Item.count).to eq(7)
+        expect{ Item.find(@item1.id) }.to raise_error(ActiveRecord::RecordNotFound)
       end
 
-      # it "deletes the invoice associated with the deleted item, if the item was the only one on that invoice" do
-        
-      #   delete "/api/v1/items/#{@item.id}"
+      it "deletes invoice associated with item (if only one on invoice)" do
+        expect(Invoice.count).to eq(2)
+        expect(InvoiceItem.count).to eq(3)
 
-      # end
+        delete "/api/v1/items/#{@item1.id}"
+        expect(Invoice.count).to eq(1)
+        expect(InvoiceItem.count).to eq(2)
+      end
+    end
+
+    context "when unsuccessful" do
+      it "should return 404 error" do
+        expect(Item.count).to eq(8)
+        delete "/api/v1/items/abc"
+        expect(response).to have_http_status(404)
+        expect(Item.count).to eq(8)
+      end
     end
   end
 
