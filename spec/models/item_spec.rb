@@ -47,7 +47,6 @@ RSpec.describe Item, type: :model do
       @watercolor = FactoryBot.create(:item, name: "Watercolor Paint", unit_price: 10.00, merchant_id: @artshop.id)
       @oil = FactoryBot.create(:item, name: "Oil Paint", unit_price: 20.00, merchant_id: @artshop.id)
       @acrylic = FactoryBot.create(:item, name: "Acrylic Paint", unit_price: 20.00, merchant_id: @artshop.id)
-      @eraser = FactoryBot.create(:item, name: "Eraser", unit_price: 4.00, merchant_id: @artshop.id)
       @paper = FactoryBot.create(:item, name: "Paper", unit_price: 60.00, merchant_id: @artshop.id)
       @easel = FactoryBot.create(:item, name: "Easel", unit_price: 100.00, merchant_id: @artshop.id)
     end
@@ -58,9 +57,19 @@ RSpec.describe Item, type: :model do
       expect(Item.find_by_name("pAinT")).to_not eq([@paper])
     end
 
-    it "find_by_price"
-    it "find_above_price"
-    it "find_below_price"
-    it "find_between_price"
+    it "find_at_or_above_price" do
+      expect(Item.find_at_or_above_price(20.00)).to eq([@oil, @acrylic, @paper, @easel])
+      expect(Item.find_at_or_above_price(20.00)).to_not eq([@paper])
+    end
+
+    it "find_at_or_below_price" do
+      expect(Item.find_at_or_below_price(60.00)).to eq([@paper, @oil, @acrylic, @watercolor])
+      expect(Item.find_at_or_below_price(60.00)).to_not eq([@easel])
+    end
+
+    it "find_between_prices" do
+      expect(Item.find_between_prices(20.00, 100.00)).to eq([@oil, @acrylic, @paper, @easel])
+      expect(Item.find_between_prices(20.00, 100.00)).to_not eq([@watercolor])
+    end
   end
 end
