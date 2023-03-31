@@ -43,11 +43,13 @@ describe "Items Search API", type: :request do
         parsed = JSON.parse(response.body, symbolize_names: true)
 
         expect(response).to have_http_status(400)
+        expect(parsed[:errors]).to eq("Can't search by name and price")
 
         get "/api/v1/items/find_all?name=art&max_price=20.00"
         parsed = JSON.parse(response.body, symbolize_names: true)
 
         expect(response).to have_http_status(400)
+        expect(parsed[:errors]).to eq("Can't search by name and price")
       end
     end
   end
@@ -75,6 +77,7 @@ describe "Items Search API", type: :request do
       it "returns 400 error when min_price is less than 0" do
         get "/api/v1/items/find_all?min_price=-10.00"
         expect(response).to have_http_status(400)
+        expect(parsed[:errors]).to eq("Price must be greater than 0")
       end
     end
   end
